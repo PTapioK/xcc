@@ -73,7 +73,7 @@ public:
 	int load_temperate_palet(bool probe);
 	int load_snow_palet(bool probe);
 	int load_palet(string fname, bool probe);
-	void draw(byte* d, int outline = -1, bool view_true_height = false) const;
+	void draw(byte* d, int outline[], bool view_true_height = false, int num_outlines = 0) const;
 	void draw_reverse(const byte* d);
 	t_rect get_rect(bool view_true_height = false) const;
 	void set_complete(const Cvirtual_image& image);

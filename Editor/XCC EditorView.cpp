@@ -164,7 +164,7 @@ void CXCCEditorView::OnDraw(CDC* pDC)
 		CRect rect((m_sel_bp + level_topleft).pixel(), (m_sel_ep + level_topleft).pixel());
 		rect.NormalizeRect();
 		rect.InflateRect(12, 12);
-		pDC->FrameRect(rect, &CBrush(RGB(0xff, 0xff, 0xff)));
+		pDC->FrameRect(rect, new CBrush(RGB(0xff, 0xff, 0xff)));
 	}
 }
 

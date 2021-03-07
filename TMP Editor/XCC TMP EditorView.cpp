@@ -99,7 +99,7 @@ void CXCCTMPEditorView::OnDraw(CDC* pDC)
 		int cx = global.r - global.x;
 		int cy = global.b - global.y;
 		byte* d = new byte[cx * cy];
-		pDoc->draw(d, m_selected, view_true_height());
+		pDoc->draw(d, m_selected.data(), view_true_height(), m_selected.size());
 		load_color_table(pDoc->palet());
 		draw_image8(d, cx, cy, pDC, 0, y);
 		y += cy + y_inc;
@@ -121,7 +121,7 @@ void CXCCTMPEditorView::OnDraw(CDC* pDC)
 		{
 			load_color_table(pDoc->palet());
 			draw_image8(i.second.extra_data.data(), header.cx_extra, header.cy_extra, pDC, 0, y);
-			if (m_selected == i.first)
+			if (std::find(m_selected.begin(), m_selected.end(), i.first) != m_selected.end())
 				pDC->FrameRect(CRect(CPoint(header.x_extra - global.x, header.y_extra - global.y - header.height * (cy / 2)), CSize(header.cx_extra, header.cy_extra)), &brush);
 				// pDC->FrameRect(CRect(CPoint(header.x_extra - global.x, header.y_extra - global.y), CSize(header.cx_extra, header.cy_extra)), &brush);
 			if (i.second.extra_z_data.data())
@@ -134,7 +134,7 @@ void CXCCTMPEditorView::OnDraw(CDC* pDC)
 		decode_tile(i.second.data.data(), d, cx);
 		load_color_table(pDoc->palet());
 		draw_image8(d, cx, cy, pDC, 0, y);
-		if (m_selected == i.first)
+		if (std::find(m_selected.begin(), m_selected.end(), i.first) != m_selected.end())
 		{
 			// pDC->FrameRect(CRect(CPoint(header.x - global.x, header.y - global.y), CSize(cx, cy)), &brush);
 			/*
@@ -176,9 +176,18 @@ void CXCCTMPEditorView::OnInitialUpdate()
 
 void CXCCTMPEditorView::select(int id)
 {
-	if (m_selected != id)
+	if (std::find(m_selected.begin(), m_selected.end(), id) == m_selected.end())
 	{
-		m_selected = id;
+		m_selected.push_back(id);
+		Invalidate();
+	}
+}
+
+void CXCCTMPEditorView::unselect(int id)
+{
+	if (std::find(m_selected.begin(), m_selected.end(), id) != m_selected.end())
+	{
+		m_selected.erase(std::find(m_selected.begin(), m_selected.end(), id));
 		Invalidate();
 	}
 }

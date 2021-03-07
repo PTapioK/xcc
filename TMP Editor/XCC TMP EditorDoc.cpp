@@ -311,7 +311,7 @@ Cvirtual_image CXCCTMPEditorDoc::get_complete() const
 	int cx = global.r - global.x;
 	int cy = global.b - global.y;
 	byte* d = new byte[cx * cy];
-	draw(d);
+	draw(d, {});
 	Cvirtual_image image;
 	image.load(d, cx, cy, 1, palet());
 	delete[] d;
@@ -438,7 +438,7 @@ const byte* get_p(const byte* d, int x, int y, int cx, int cy)
 	return d + x + cx * y;
 }
 
-void CXCCTMPEditorDoc::draw(byte* d, int outline, bool view_true_height) const
+void CXCCTMPEditorDoc::draw(byte* d, int outline[], bool view_true_height, int num_outlines) const
 {
 	int half_cy = m_header.cy / 2;
 	t_rect global = get_rect(view_true_height);
@@ -459,10 +459,13 @@ void CXCCTMPEditorDoc::draw(byte* d, int outline, bool view_true_height) const
 			cx += 4;
 			x -= 2;
 			memcpy(w_line + x, r, cx);
-			if (outline == i.first)
+			for (int out_i = 0; out_i < num_outlines; ++out_i)
 			{
-				memset(w_line + x, 0xff, 2);
-				memset(w_line + x + cx - 2, 0xff, 2);
+				if (outline[out_i] == i.first)
+				{
+					memset(w_line + x, 0xff, 2);
+					memset(w_line + x + cx - 2, 0xff, 2);
+				}
 			}
 			r += cx;
 			w_line += global_cx;
@@ -472,10 +475,13 @@ void CXCCTMPEditorDoc::draw(byte* d, int outline, bool view_true_height) const
 			cx -= 4;
 			x += 2;
 			memcpy(w_line + x, r, cx);
-			if (outline == i.first && cx)
+			for (int out_i = 0; out_i < num_outlines; ++out_i)
 			{
-				memset(w_line + x, 0xff, 2);
-				memset(w_line + x + cx - 2, 0xff, 2);
+				if (outline[out_i] == i.first && cx)
+				{
+					memset(w_line + x, 0xff, 2);
+					memset(w_line + x + cx - 2, 0xff, 2);
+				}
 			}
 			r += cx;
 			w_line += global_cx;

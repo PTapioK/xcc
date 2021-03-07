@@ -334,8 +334,21 @@ void CLeftView::OnUpdatePopupInsert(CCmdUI* pCmdUI)
 void CLeftView::OnItemchanged(NMHDR* pNMHDR, LRESULT* pResult) 
 {
 	NM_LISTVIEW* pNMListView = (NM_LISTVIEW*)pNMHDR;
-	if (~pNMListView->uOldState & LVIS_SELECTED && pNMListView->uNewState & LVIS_SELECTED)
-		m_other_pane->select(pNMListView->lParam);
+	int iPos = ListView_GetNextItem(pNMHDR->hwndFrom, -1, LVNI_ALL);
+	while (iPos != -1) {
+		UINT state = ListView_GetItemState(pNMHDR->hwndFrom, iPos, LVIS_SELECTED);
+		if (state & LVIS_SELECTED)
+		{
+			m_other_pane->select(iPos);
+		}
+		else
+		{
+			m_other_pane->unselect(iPos);
+		}
+		iPos = ListView_GetNextItem(pNMHDR->hwndFrom, iPos, LVNI_ALL);
+	}
+	//if (~pNMListView->uOldState & LVIS_SELECTED && pNMListView->uNewState & LVIS_SELECTED)
+	//	m_other_pane->select(pNMListView->lParam);
 	*pResult = 0;
 }
 

@@ -36,6 +36,7 @@ public:
 // Implementation
 public:
 	void select(int id);
+	void unselect(int id);
 	virtual ~CXCCTMPEditorView();
 
 protected:
@@ -48,6 +49,6 @@ protected:
 private:
 	CRect m_clip_rect;
 	DWORD m_color_table[256];
-	int m_selected = -1;
+	std::vector<int> m_selected;
 	bool m_view_true_height = false;
 };
