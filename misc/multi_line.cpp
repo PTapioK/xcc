@@ -1,8 +1,10 @@
+#include "stdafx.h"
 #include "multi_line.h"
 
 #include <boost/algorithm/string.hpp>
 
 using namespace boost;
+using namespace std;
 
 Cmulti_line::Cmulti_line(const string& is)
 {

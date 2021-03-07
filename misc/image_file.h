@@ -10,13 +10,18 @@ template <class T>
 class Cimage_file : public Cvideo_file<T>
 {
 public:
+	virtual int cb_pixel() const = 0;
+	virtual int cx() const = 0;
+	virtual int cy() const = 0;
+
+
 	virtual void decode(void*) const = 0;
 	
 	virtual Cvirtual_image vimage() const
 	{
 		Cvirtual_binary image;
 		decode(image.write_start(Cvideo_file<T>::cb_image()));
-		return Cvirtual_image(image, Cvideo_file<T>::cx(), Cvideo_file<T>::cy(), Cvideo_file<T>::cb_pixel(), Cvideo_file<T>::palet());
+		return Cvirtual_image(image, cx(), cy(), cb_pixel(), Cvideo_file<T>::palet());
 	}
 	
 	int cf() const override
