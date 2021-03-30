@@ -2,6 +2,8 @@
 
 #include "palet.h"
 
+#include <vector>
+
 class CXCCTMPEditorView : public CScrollView
 {
 protected: // create from serialization only
@@ -37,6 +39,7 @@ public:
 public:
 	void select(int id);
 	void unselect(int id);
+	const std::vector<int>& GetSelected();
 	virtual ~CXCCTMPEditorView();
 
 protected:

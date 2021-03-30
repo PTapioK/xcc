@@ -6,6 +6,10 @@
 #include "string_conversion.h"
 #include "properties_dlg.h"
 #include "virtual_image.h"
+#include <iostream>
+#include <WinUser.h>
+#include <chrono>
+#include <thread>
 
 IMPLEMENT_DYNCREATE(CLeftView, CListView)
 
@@ -181,9 +185,114 @@ void CLeftView::OnContextMenu(CWnd*, CPoint point)
 	}
 }
 
-void CLeftView::OnEditCopy() 
+void CLeftView::OnEditCopy()
 {
-	GetDocument()->get_image(get_current_id()).set_clipboard();
+	std::stringstream ss;
+	auto filename = GetDocument()->GetTitle();
+
+	std::string existing_data("");
+	LPVOID lptstr;
+
+	bool skip_read = false;
+	if (!::IsClipboardFormatAvailable(CF_TEXT))
+	{
+		//throw std::runtime_error("Failed to open clipboard!");
+		skip_read = true;
+	}
+
+	if (!skip_read)
+	{
+		if (!::OpenClipboard(this->GetParent()->GetSafeHwnd()))
+		{
+			throw std::runtime_error("Failed to open clipboard!");
+			return;
+		}
+
+		HGLOBAL hData = ::GetClipboardData(CF_TEXT);
+		if (hData == nullptr)
+		{
+			throw std::runtime_error("Failed to get data from clipboard!");
+			return;
+		}
+
+		lptstr = ::GlobalLock(hData);
+		if (lptstr == nullptr)
+		{
+			throw std::runtime_error("Failed to retrieve global lock");
+			return;
+		}
+
+		existing_data = (LPCTSTR)lptstr;
+
+		GlobalUnlock(hData);
+
+		if (!::CloseClipboard())
+		{
+			throw std::runtime_error("Failed to close clipboard!");
+			return;
+		}
+	}
+
+	if (!::OpenClipboard(this->GetParent()->GetSafeHwnd()))
+	{
+		throw std::runtime_error("Failed to open clipboard!");
+		return;
+	}
+
+	bool has_existing = false;
+	if (existing_data.find(".tem") != std::string::npos)
+	{
+		has_existing = true;
+	}
+
+	if (!has_existing || (has_existing && std::count(existing_data.begin(), existing_data.end(), '\n') >= 7))
+	{
+		::EmptyClipboard();
+	}
+	else if (has_existing)
+	{
+		ss << existing_data << "\n";
+	}
+	ss << (LPCTSTR)filename << "\n";
+
+	for (size_t entry_i = 0; entry_i < m_other_pane->GetSelected().size(); ++entry_i)
+	{
+		auto entry_id = m_other_pane->GetSelected()[entry_i];
+		auto tile = GetDocument()->map().at(entry_id);
+
+		ss << entry_id;
+		if (entry_i < m_other_pane->GetSelected().size() - 1)
+		{
+			ss << " ";
+		}
+	}
+
+	const size_t len = strlen(ss.str().c_str()) + 1;
+	HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE, len);
+	if (hMem == nullptr)
+	{
+		throw std::runtime_error("Failed to allocate global memory!");
+		return;
+	}
+	lptstr = ::GlobalLock(hMem);
+	if (lptstr == nullptr)
+	{
+		throw std::runtime_error("Failed to retrieve global lock");
+		return;
+	}
+	memcpy(lptstr, ss.str().c_str(), len);
+	GlobalUnlock(hMem);
+
+	if (!::SetClipboardData(CF_TEXT, hMem))
+	{
+		throw std::runtime_error("Failed to set data to clipboard!");
+		return;
+	}
+	if (!::CloseClipboard())
+	{
+		throw std::runtime_error("Failed to close clipboard!");
+		return;
+	}
 }
 
 void CLeftView::OnUpdateEditCopy(CCmdUI* pCmdUI) 
@@ -337,18 +446,20 @@ void CLeftView::OnItemchanged(NMHDR* pNMHDR, LRESULT* pResult)
 	int iPos = ListView_GetNextItem(pNMHDR->hwndFrom, -1, LVNI_ALL);
 	while (iPos != -1) {
 		UINT state = ListView_GetItemState(pNMHDR->hwndFrom, iPos, LVIS_SELECTED);
+		LV_ITEM Item = { 0 };
+		Item.iItem = iPos;
+		Item.mask = LVIF_PARAM;
+		ListView_GetItem(pNMHDR->hwndFrom, &Item);
 		if (state & LVIS_SELECTED)
 		{
-			m_other_pane->select(iPos);
+			m_other_pane->select(Item.lParam);
 		}
 		else
 		{
-			m_other_pane->unselect(iPos);
+			m_other_pane->unselect(Item.lParam);
 		}
 		iPos = ListView_GetNextItem(pNMHDR->hwndFrom, iPos, LVNI_ALL);
 	}
-	//if (~pNMListView->uOldState & LVIS_SELECTED && pNMListView->uNewState & LVIS_SELECTED)
-	//	m_other_pane->select(pNMListView->lParam);
 	*pResult = 0;
 }
 

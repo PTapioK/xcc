@@ -192,6 +192,11 @@ void CXCCTMPEditorView::unselect(int id)
 	}
 }
 
+const std::vector<int>& CXCCTMPEditorView::GetSelected()
+{
+	return m_selected;
+}
+
 bool CXCCTMPEditorView::view_true_height() const
 {
 	return m_view_true_height;
